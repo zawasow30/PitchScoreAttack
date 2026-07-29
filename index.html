@@ -1074,6 +1074,11 @@
               <div class="stat-box-title" id="stat3-title" style="margin-bottom: 0;">一発正解率</div>
               <div id="res-stat3" class="stat-box-val" style="font-size: 1.3rem;">0.0%</div>
             </div>
+            <div class="stat-box"
+              style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-color: rgba(255, 0, 127, 0.4);">
+              <!--div class="stat-box-title" style="margin-bottom: 0; color: #ff007f;">ばらつき (Dev)</div-->
+              <div id="res-stat-stddev" class="stat-box-val" style="font-size: 1.3rem;">0.0 ms</div>
+            </div>
           </div>
 
           <!-- RIGHT COLUMN: PIANO KEYBOARD -->
@@ -1795,18 +1800,20 @@
         this.showView('result');
 
         // Consistency Bonus (解答時間のばらつきが少ないほど加点)
+        let stdDev = 0;
         if (this.responseTimes.length > 1) {
           const mean = this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length;
           const variance = this.responseTimes.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / this.responseTimes.length;
-          const stdDev = Math.sqrt(variance);
+          stdDev = Math.sqrt(variance);
 
           // 標準偏差(stdDev)に基づく安定感ボーナスをテーブルの線形補間で算出
           const CONSISTENCY_BONUS_TABLE = [
             { s: 0, b: 300 },
-            { s: 100, b: 250 }, // 標準偏差50msまでは満点
-            { s: 250, b: 200 },
-            { s: 400, b: 100 },
-            { s: 600, b: 0 }
+            { s: 100, b: 290 }, // 標準偏差50msまでは満点
+            { s: 250, b: 250 },
+            { s: 400, b: 200 },
+            { s: 800, b: 100 },
+            { s: 1500, b: 0 }
           ];
 
           let consistencyBonusPerQ = 0;
@@ -1933,6 +1940,11 @@
           this.resStat2.textContent = `${this.firstTryCorrectCount} 問`;
           this.stat3Title.textContent = '一発正解率';
           this.resStat3.textContent = `${firstTryPct.toFixed(1)}%`;
+        }
+
+        const stddevElem = document.getElementById('res-stat-stddev');
+        if (stddevElem) {
+          stddevElem.textContent = `${stdDev.toFixed(1)} ms`;
         }
 
         const currentLabels = NOTATIONS[this.currentNotation].labels;
