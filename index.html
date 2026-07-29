@@ -421,7 +421,8 @@
       padding-bottom: 8px;
     }
 
-    .fat-black-keys-mode .key.black {
+    .fat-black-keys-mode .key.black,
+    #res-piano-wrapper .key.black {
       width: 64px;
       margin-left: -9px;
     }
@@ -706,7 +707,8 @@
         padding-bottom: 6px;
       }
 
-      .fat-black-keys-mode .key.black {
+      .fat-black-keys-mode .key.black,
+      #res-piano-wrapper .key.black {
         width: 44px;
         margin-left: -6px;
       }
@@ -788,7 +790,7 @@
   </style>
 </head>
 
-<body>
+<body class="fat-black-keys-mode">
 
   <div class="app-container">
 
@@ -888,8 +890,8 @@
             黒鍵の判定
           </div>
           <select id="hitbox-select" class="select-input">
-            <option value="normal" selected>Normal (標準)</option>
-            <option value="wide">Wide (広げる)</option>
+            <option value="normal">Normal (標準)</option>
+            <option value="wide" selected>Wide (広げる)</option>
           </select>
         </div>
 
