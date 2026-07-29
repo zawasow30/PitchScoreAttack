@@ -784,7 +784,7 @@
 
     <!-- Title Header -->
     <div class="header-title">
-      <h1>Pitch Score Attack</h1>
+      <h1><span id="secret-p" style="cursor: pointer; transition: color 0.3s;">P</span>itch Score Attack</h1>
     </div>
 
     <!-- ================= 1. START VIEW ================= -->
@@ -864,7 +864,7 @@
             <option value="italian" selected>イタリア音名 (ドレミ)</option>
             <option value="english">英語音名 (C, D, E...)</option>
             <option value="german">ドイツ音名 (C, D, E... H / B)</option>
-            <!--option value="italian_special">イタリア音名 + 特殊黒鍵名 (デメフィサタ)</option-->
+            <option value="italian_special" id="opt-italian-special" hidden>イタリア音名 + 特殊黒鍵名 (デメフィサタ)</option>
           </select>
         </div>
 
@@ -1336,6 +1336,20 @@
           this.currentNotation = e.target.value;
           this.updateLabels();
         });
+
+        // Easter Egg: Unlock Italian Special Notation
+        const secretP = document.getElementById('secret-p');
+        if (secretP) {
+          secretP.addEventListener('click', () => {
+            const opt = document.getElementById('opt-italian-special');
+            if (opt) {
+              opt.hidden = false;
+              this.notationSelect.value = 'italian_special';
+              this.notationSelect.dispatchEvent(new Event('change'));
+              secretP.style.color = 'var(--accent-purple)';
+            }
+          });
+        }
 
         // Start & Retry Buttons
         this.startBtn.addEventListener('click', () => this.startGame());
