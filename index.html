@@ -646,6 +646,38 @@
     }
 
     /* Responsive scaling for mobile / smaller screens */
+    .result-columns {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 60px;
+      margin-bottom: 30px;
+    }
+
+    .result-stats-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex: 0.6;
+      max-width: 240px;
+      min-width: 200px;
+    }
+
+    .result-keyboard-col {
+      flex: 1.5;
+      min-width: 400px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .result-keyboard-wrapper {
+      pointer-events: none;
+      transform: scale(0.92);
+      transform-origin: left top;
+      margin: 0 0 -18px 0;
+    }
+
     @media (max-width: 680px) {
       .app-container {
         padding: 24px 16px;
@@ -708,8 +740,30 @@
       }
 
       .final-score-val {
-        font-size: 4rem;
+        font-size: 3rem;
         letter-spacing: -1px;
+      }
+
+      .result-columns {
+        flex-direction: column-reverse;
+        gap: 20px;
+      }
+
+      .result-stats-col {
+        max-width: 100%;
+        min-width: 100%;
+        gap: 12px;
+      }
+
+      .result-keyboard-col {
+        min-width: 100%;
+      }
+
+      .keyboard-wrapper.result-keyboard-wrapper {
+        transform: scale(1);
+        margin: 0;
+        padding-left: 0;
+        justify-content: flex-start;
       }
     }
   </style>
@@ -956,10 +1010,9 @@
           <div id="res-score" class="final-score-val" style="margin-bottom: 0;">100.000</div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 60px; margin-bottom: 30px;">
+        <div class="result-columns">
           <!-- LEFT COLUMN: STATS -->
-          <div
-            style="display: flex; flex-direction: column; justify-content: space-between; flex: 0.6; max-width: 240px; min-width: 200px;">
+          <div class="result-stats-col">
             <div class="stat-box"
               style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
               <div class="stat-box-title" style="margin-bottom: 0;">プレイ難易度</div>
@@ -984,11 +1037,9 @@
           </div>
 
           <!-- RIGHT COLUMN: PIANO KEYBOARD -->
-          <div
-            style="flex: 1.5; min-width: 400px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="result-keyboard-col">
             <div class="final-score-title" style="margin-top: 0; margin-bottom: 0;">音名ごとの正解率</div>
-            <div id="res-piano-wrapper" class="keyboard-wrapper"
-              style="pointer-events: none; transform: scale(0.92); transform-origin: left top; margin: 0 0 -18px 0;">
+            <div id="res-piano-wrapper" class="keyboard-wrapper result-keyboard-wrapper">
               <div class="piano-keyboard">
                 <!-- White Keys -->
                 <div class="white-keys-container">
