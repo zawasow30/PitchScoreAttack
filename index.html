@@ -740,7 +740,7 @@
       }
 
       .final-score-val {
-        font-size: 3rem;
+        font-size: 4rem;
         letter-spacing: -1px;
       }
 
@@ -762,14 +762,14 @@
 
       .keyboard-wrapper.result-keyboard-wrapper {
         transform: none;
-        margin: 0 0 0 -16px; /* Cancel app-container left padding */
+        margin: 0;
         padding-left: 0;
         justify-content: flex-start;
-        width: 100vw;
+        width: 100%;
       }
 
       .result-keyboard-wrapper .piano-keyboard {
-        transform: scale(min(1, calc(100vw / 380)));
+        transform: scale(min(1, calc((100vw - 74px) / 366)));
         transform-origin: left top;
       }
     }
