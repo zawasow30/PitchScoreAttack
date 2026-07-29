@@ -1341,7 +1341,11 @@
         this.replayBtn.addEventListener('click', () => this.replayCurrentNote());
         this.interruptBtn.addEventListener('click', () => {
           this.isTimeUp = true;
-          this.showStartScreen();
+          if (this.gameType === 'score_attack') {
+            this.finishGame();
+          } else {
+            this.showStartScreen();
+          }
         });
 
         // Keyboard Clicks / Touches
