@@ -1518,10 +1518,9 @@
         this.highlightActiveModeKeys();
         this.showView('game');
         
-        // スクロール位置の調整: offsetの数値を大きくするほど、より上の方で止まります
-        const offset = 80; // ← ここの数値を調整してください（例：100, 150など）
+        // Scroll to the bottom to ensure keyboard is fully visible
         window.scrollTo({
-          top: document.body.scrollHeight - offset,
+          top: document.body.scrollHeight,
           behavior: 'smooth'
         });
 
