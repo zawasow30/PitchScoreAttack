@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pitch Score Attack | 音感判定ゲーム</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #0a0d18;
+      --bg-card: rgba(20, 26, 48, 0.75);
+      --bg-card-border: rgba(0, 243, 255, 0.15);
+      --accent-cyan: #00f3ff;
+      --accent-purple: #b537f2;
+      --accent-green: #00ff9d;
+      --accent-red: #ff3860;
+      --accent-gold: #ffd700;
+      --text-main: #f0f4f8;
+      --text-muted: #8a94a6;
+      --key-white-bg: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
+      --key-black-bg: linear-gradient(180deg, #2a2e3d 0%, #12151e 100%);
+      --font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(181, 55, 242, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(0, 243, 255, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(10, 13, 24, 0.8) 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Glassmorphism Container */
+    .app-container {
+      width: 100%;
+      max-width: 960px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(0, 243, 255, 0.1);
+      padding: 36px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative Glow line */
+    .app-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-green));
+    }
+
+    /* Views Header */
+    .header-title {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header-title h1 {
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff 30%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      text-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+    }
+
+    .header-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+    }
+
+    /* Screen Views */
+    .view {
+      display: none;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ================= START SCREEN ================= */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+
+    .setting-card {
+      background: rgba(10, 13, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.3s;
+    }
+
+    .setting-card:hover {
+      border-color: rgba(0, 243, 255, 0.3);
+    }
+
+    .setting-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .select-input {
+      width: 100%;
+      background: rgba(22, 28, 48, 0.9);
+      color: var(--text-main);
+      border: 1px solid rgba(0, 243, 255, 0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-family: var(--font-family);
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .select-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(0, 243, 255, 0.3);
+    }
+
+    .start-btn-container {
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      color: #ffffff;
+      font-family: var(--font-family);
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      padding: 16px 54px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0, 243, 255, 0.3),
+        0 0 15px rgba(181, 55, 242, 0.2);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 15px 35px rgba(0, 243, 255, 0.4),
+        0 0 25px rgba(181, 55, 242, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    /* ================= GAME SCREEN ================= */
+    .game-status-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      background: rgba(10, 13, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px 24px;
+      margin-bottom: 24px;
+    }
+
+    .status-item {
+      text-align: center;
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .status-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .status-value.score {
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);
+    }
+
+    .status-value.timer {
+      color: var(--accent-green);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+    }
+
+    .status-value.timer.warning {
+      color: var(--accent-red);
+      text-shadow: 0 0 15px rgba(255, 56, 96, 0.8);
+      animation: pulseWarning 0.5s infinite alternate;
+    }
+
+    @keyframes pulseWarning {
+      from {
+        transform: scale(1);
+      }
+
+      to {
+        transform: scale(1.08);
+      }
+    }
+
+    .playback-area {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .replay-btn {
+      background: rgba(22, 28, 48, 0.8);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-family: var(--font-family);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .replay-btn:hover {
+      background: var(--accent-cyan);
+      color: var(--bg-dark);
+      box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+    }
+
+    .interrupt-btn {
+      background: rgba(22, 28, 48, 0.8);
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+      font-family: var(--font-family);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .interrupt-btn:hover {
+      background: var(--accent-red);
+      color: #ffffff;
+      box-shadow: 0 0 15px rgba(255, 56, 96, 0.5);
+    }
+
+    .feedback-msg {
+      height: 28px;
+      margin-top: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      transition: opacity 0.2s;
+    }
+
+    .feedback-msg.correct {
+      color: var(--accent-green);
+      text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+    }
+
+    .feedback-msg.wrong {
+      color: var(--accent-red);
+      text-shadow: 0 0 10px rgba(255, 56, 96, 0.5);
+    }
+
+    /* ================= PIANO KEYBOARD UI ================= */
+    .keyboard-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 10px 0 20px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .piano-keyboard {
+      position: relative;
+      display: flex;
+      background: #111422;
+      padding: 8px;
+      border-radius: 16px;
+      box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.8),
+        0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .white-keys-container {
+      display: flex;
+      gap: 4px;
+    }
+
+    .key {
+      position: relative;
+      cursor: pointer;
+      transition: all 0.1s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 12px;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .key.white {
+      width: 62px;
+      height: 210px;
+      background: var(--key-white-bg);
+      border: 1px solid #c8d1dc;
+      border-top: none;
+      box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3), inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1;
+      color: #2b3040;
+    }
+
+    .key.white:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #d5dfec 100%);
+    }
+
+    .key.white.active {
+      background: linear-gradient(180deg, #00f3ff 0%, #00b8d4 100%);
+      color: #050814;
+      transform: translateY(3px);
+      box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-cyan);
+    }
+
+    .key.white.correct-flash {
+      background: linear-gradient(180deg, #00ff9d 0%, #00b869 100%) !important;
+      color: #050814 !important;
+      box-shadow: 0 0 25px var(--accent-green) !important;
+    }
+
+    .key.white.wrong-flash {
+      background: linear-gradient(180deg, #ff3860 0%, #c7153a 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 25px var(--accent-red) !important;
+      animation: shake 0.25s ease-in-out;
+    }
+
+    .key.black {
+      position: absolute;
+      width: 46px;
+      height: 128px;
+      background: var(--key-black-bg);
+      border: 1px solid #3f465c;
+      border-top: none;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+      z-index: 2;
+      color: #e2e8f0;
+      padding-bottom: 8px;
+    }
+
+    .key.black:hover {
+      background: linear-gradient(180deg, #3d4358 0%, #1a1e2b 100%);
+    }
+
+    .key.black.active {
+      background: linear-gradient(180deg, #b537f2 0%, #811cc0 100%);
+      color: #ffffff;
+      transform: translateY(2px);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8), 0 0 15px var(--accent-purple);
+    }
+
+    .key.black.correct-flash {
+      background: linear-gradient(180deg, #00ff9d 0%, #00b869 100%) !important;
+      color: #050814 !important;
+      box-shadow: 0 0 25px var(--accent-green) !important;
+    }
+
+    .key.black.wrong-flash {
+      background: linear-gradient(180deg, #ff3860 0%, #c7153a 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 25px var(--accent-red) !important;
+      animation: shake 0.25s ease-in-out;
+    }
+
+    /* Out of mode key styling (dimmed slightly, but fully functional) */
+    .key.out-of-mode {
+      pointer-events: none;
+      opacity: 0.45;
+    }
+
+    .key.out-of-mode:hover {
+      opacity: 0.8;
+    }
+
+    /* Black Key Positions (relative to container) */
+    .key[data-note="C#4"] {
+      left: 43px;
+    }
+
+    .key[data-note="D#4"] {
+      left: 109px;
+    }
+
+    .key[data-note="F#4"] {
+      left: 241px;
+    }
+
+    .key[data-note="G#4"] {
+      left: 307px;
+    }
+
+    .key[data-note="A#4"] {
+      left: 373px;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-4px);
+      }
+
+      75% {
+        transform: translateX(4px);
+      }
+    }
+
+    /* Key labels */
+    .note-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.1;
+      pointer-events: none;
+    }
+
+    .key.black .note-name {
+      font-size: 0.68rem;
+    }
+
+    .key-bind {
+      font-size: 0.65rem;
+      font-weight: 600;
+      opacity: 0.5;
+      margin-top: 4px;
+      background: rgba(0, 0, 0, 0.15);
+      padding: 1px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+    }
+
+    .key.black .key-bind {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* ================= RESULT SCREEN ================= */
+    .result-card {
+      text-align: left;
+      padding: 10px 0;
+    }
+
+    .res-key-stat {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.25rem;
+      font-weight: 800;
+      white-space: nowrap;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+    }
+
+    .key.black .res-key-stat {
+      bottom: 42px;
+    }
+
+    .stat-text-rainbow {
+      background: linear-gradient(90deg, #ff3366, #ff9933, #ffff33, #33ff99, #33ccff, #8a2be2, #b84dff);
+      background-size: 100% 100%;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+    .stat-text-gold {
+      background: linear-gradient(135deg, #ffdf00, #ffb300, #fff8b0, #ffaa00);
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+    .stat-text-red {
+      color: #ff3860 !important;
+      -webkit-text-fill-color: #ff3860 !important;
+      text-shadow: 0 0 8px rgba(255, 56, 96, 0.4);
+    }
+
+    .stat-text-blue {
+      color: #00d0ff !important;
+      -webkit-text-fill-color: #00d0ff !important;
+      text-shadow: 0 0 8px rgba(0, 208, 255, 0.4);
+    }
+
+    .stat-text-gray {
+      color: #8892b0 !important;
+      -webkit-text-fill-color: #8892b0 !important;
+    }
+
+    .final-score-title {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+
+    .final-score-val {
+      display: inline-block;
+      font-size: 9rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 20px rgba(148, 163, 184, 0.5));
+      margin-bottom: 20px;
+      line-height: 0.9;
+      letter-spacing: -2px;
+      transition: all 0.3s ease;
+    }
+
+    .final-score-val.gold {
+      background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.7));
+    }
+
+    .final-score-val.rainbow {
+      background: linear-gradient(90deg,
+          #ff0000 0%,
+          #ff7f00 16.6%,
+          #ffff00 33.3%,
+          #00ff00 50%,
+          #00ffff 66.6%,
+          #0000ff 83.3%,
+          #8b00ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.9));
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .stat-box {
+      background: rgba(10, 13, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .stat-box-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .stat-box-val {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    /* Responsive scaling for mobile / smaller screens */
+    @media (max-width: 680px) {
+      .app-container {
+        padding: 24px 16px;
+      }
+
+      .white-keys-container {
+        gap: 2px;
+      }
+
+      .key.white {
+        width: 42px;
+        height: 160px;
+        padding-bottom: 8px;
+      }
+
+      .key.black {
+        width: 32px;
+        height: 100px;
+        padding-bottom: 6px;
+      }
+
+      .key[data-note="C#4"] {
+        left: 28px;
+      }
+
+      .key[data-note="D#4"] {
+        left: 72px;
+      }
+
+      .key[data-note="F#4"] {
+        left: 160px;
+      }
+
+      .key[data-note="G#4"] {
+        left: 204px;
+      }
+
+      .key[data-note="A#4"] {
+        left: 248px;
+      }
+
+      .note-name {
+        font-size: 0.65rem;
+      }
+
+      .key.black .note-name {
+        font-size: 0.55rem;
+      }
+
+      .key.black .res-key-stat {
+        bottom: 34px;
+      }
+
+      .key-bind {
+        display: none;
+      }
+
+      .header-title h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <!-- Title Header -->
+    <div class="header-title">
+      <h1>Pitch Score Attack</h1>
+    </div>
+
+    <!-- ================= 1. START VIEW ================= -->
+    <div id="start-view" class="view active">
+      <div class="settings-grid">
+
+        <!-- Game Content Type Select -->
+        <div class="setting-card"
+          style="grid-column: 1 / -1; border-color: rgba(0, 243, 255, 0.3); background: rgba(15, 22, 42, 0.85);">
+          <div class="setting-label">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            ゲームモード
+          </div>
+          <select id="game-type-select" class="select-input"
+            style="font-weight: 800; font-size: 1.1rem; color: var(--accent-cyan);">
+            <option value="score_attack" selected>スコアアタック</option>
+            <option value="practice">練習モード</option>
+          </select>
+        </div>
+
+        <!-- Mode Select -->
+        <div class="setting-card">
+          <div class="setting-label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            出題難易度
+          </div>
+          <select id="mode-select" class="select-input">
+            <option value="normal" selected>Normal (白鍵のみ)</option>
+            <option value="hard">Hard (全部)</option>
+            <option value="normal_ex1">Ex1 (ド・ミ・ソ・ド)</option>
+            <option value="normal_ex2">Ex2 (ド・レ・ミ・ソ・ラ・ド)</option>
+            <option value="hard_ex1">Ex3 (白鍵 + シ♭)</option>
+            <option value="hard_ex2">Ex4 (白鍵 + シ♭, ミ♭)</option>
+            <option value="hard_ex3">Ex5 (白鍵 + シ♭, ミ♭, ラ♭)</option>
+            <option value="hard_ex4">Ex6 (白鍵 + ファ♯)</option>
+            <option value="hard_ex5">Ex7 (白鍵 + ファ♯, ド♯)</option>
+            <option value="hard_ex6">Ex8 (白鍵 + ファ♯, ド♯, ソ♯)</option>
+            <option value="hard_ex7">Ex9 (黒鍵のみ)</option>
+          </select>
+        </div>
+
+        <!-- Notation Select -->
+        <div class="setting-card">
+          <div class="setting-label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
+            音名表記
+          </div>
+          <select id="notation-select" class="select-input">
+            <option value="italian" selected>イタリア音名 (ドレミ)</option>
+            <option value="english">英語音名 (C, D, E...)</option>
+            <option value="german">ドイツ音名 (C, D, E... H / B)</option>
+            <!--option value="italian_special">イタリア音名 + 特殊黒鍵名 (デメフィサタ)</option-->
+          </select>
+        </div>
+
+        <!-- Tuning Select -->
+        <div class="setting-card">
+          <div class="setting-label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M9 18V5l12-2v13"></path>
+              <circle cx="6" cy="18" r="3"></circle>
+              <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            基準ピッチ
+          </div>
+          <select id="tuning-select" class="select-input">
+            <option value="440" selected>A4 = 440 Hz</option>
+            <option value="442">A4 = 442 Hz</option>
+          </select>
+        </div>
+
+        <!-- Waveform Select -->
+        <div class="setting-card">
+          <div class="setting-label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            音色
+          </div>
+          <select id="waveform-select" class="select-input">
+            <option value="sine" selected>正弦波 (Sine)</option>
+            <option value="sawtooth">ノコギリ波 (Sawtooth)</option>
+            <option value="square">スクエア波 (Square)</option>
+            <option value="triangle">三角波 (Triangle)</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="start-btn-container">
+        <!-- [DEV DEBUG] -->
+        <div id="dev-preview-container"
+          style="margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <input type="number" id="dev-score-input" value="100000" min="0" max="100000"
+            style="padding: 10px; border-radius: 8px; border: 1px solid var(--accent-cyan); background: rgba(0,0,0,0.5); color: #fff; width: 120px; font-size: 1rem; text-align: center;">
+          <button class="dev-preview-custom-btn btn-primary"
+            style="padding: 10px 24px; font-size: 0.9rem; background: linear-gradient(135deg, #b537f2, #ff007f); border: none;">
+            🔍 プレビュー
+          </button>
+        </div>
+        <br>
+        <button id="start-btn" class="btn-primary">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          GAME START
+        </button>
+      </div>
+    </div>
+
+    <!-- ================= 2. GAME VIEW ================= -->
+    <div id="game-view" class="view">
+
+      <!-- Status Header -->
+      <div class="game-status-bar">
+        <div class="status-item">
+          <div class="status-label" id="label-solved">総正解数</div>
+          <div class="status-value" id="q-total-solved">0</div>
+        </div>
+        <div class="status-item">
+          <div class="status-label" id="label-first-try">一発正解数</div>
+          <div class="status-value" id="q-first-try" style="color: var(--accent-cyan);">0</div>
+        </div>
+        <div class="status-item" id="timer-box">
+          <div class="status-label">Time Left</div>
+          <div class="status-value timer" id="q-timer">90.0s</div>
+        </div>
+      </div>
+
+      <!-- Playback Area -->
+      <div class="playback-area">
+        <div style="display: flex; justify-content: center; gap: 12px;">
+          <button id="replay-btn" class="replay-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="11 19 2 12 11 5 11 19" />
+              <polygon points="22 19 13 12 22 5 22 19" />
+            </svg>
+            もう一度聴く (Space)
+          </button>
+          <button id="interrupt-btn" class="interrupt-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            中断する
+          </button>
+        </div>
+        <div id="feedback-msg" class="feedback-msg">再生された音をキーボードまたはタップで当ててください</div>
+        <div id="practice-debug-prob"
+          style="display: none; margin-top: 10px; font-size: 0.8rem; color: #ffcc00; text-align: center; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.5; word-wrap: break-word;">
+        </div>
+      </div>
+
+      <!-- Piano Keyboard UI -->
+      <div class="keyboard-wrapper">
+        <div class="piano-keyboard">
+
+          <!-- White Keys -->
+          <div class="white-keys-container">
+            <div class="key white" data-note="C4">
+              <span class="note-name">ド</span>
+              <span class="key-bind">A</span>
+            </div>
+            <div class="key white" data-note="D4">
+              <span class="note-name">レ</span>
+              <span class="key-bind">S</span>
+            </div>
+            <div class="key white" data-note="E4">
+              <span class="note-name">ミ</span>
+              <span class="key-bind">D</span>
+            </div>
+            <div class="key white" data-note="F4">
+              <span class="note-name">ファ</span>
+              <span class="key-bind">F</span>
+            </div>
+            <div class="key white" data-note="G4">
+              <span class="note-name">ソ</span>
+              <span class="key-bind">G</span>
+            </div>
+            <div class="key white" data-note="A4">
+              <span class="note-name">ラ</span>
+              <span class="key-bind">H</span>
+            </div>
+            <div class="key white" data-note="B4">
+              <span class="note-name">シ</span>
+              <span class="key-bind">J</span>
+            </div>
+            <div class="key white" data-note="C5">
+              <span class="note-name">ド</span>
+              <span class="key-bind">K</span>
+            </div>
+          </div>
+
+          <!-- Black Keys -->
+          <div class="key black" data-note="C#4">
+            <span class="note-name">ド♯<br>レ♭</span>
+            <span class="key-bind">W</span>
+          </div>
+          <div class="key black" data-note="D#4">
+            <span class="note-name">レ♯<br>ミ♭</span>
+            <span class="key-bind">E</span>
+          </div>
+          <div class="key black" data-note="F#4">
+            <span class="note-name">ファ♯<br>ソ♭</span>
+            <span class="key-bind">T</span>
+          </div>
+          <div class="key black" data-note="G#4">
+            <span class="note-name">ソ♯<br>ラ♭</span>
+            <span class="key-bind">Y</span>
+          </div>
+          <div class="key black" data-note="A#4">
+            <span class="note-name">ラ♯<br>シ♭</span>
+            <span class="key-bind">U</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= 3. RESULT VIEW ================= -->
+    <div id="result-view" class="view">
+      <div class="result-card">
+        <div style="margin-bottom: 16px; text-align: center;">
+          <div id="res-score" class="final-score-val" style="margin-bottom: 0;">100.000</div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 60px; margin-bottom: 30px;">
+          <!-- LEFT COLUMN: STATS -->
+          <div
+            style="display: flex; flex-direction: column; justify-content: space-between; flex: 0.6; max-width: 240px; min-width: 200px;">
+            <div class="stat-box"
+              style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div class="stat-box-title" style="margin-bottom: 0;">プレイ難易度</div>
+              <div id="res-difficulty-badge" class="stat-box-val" style="font-size: 1.3rem; color: var(--accent-cyan);">
+                Hard-Ex1</div>
+            </div>
+            <div class="stat-box"
+              style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div class="stat-box-title" id="stat1-title" style="margin-bottom: 0;">総正解数</div>
+              <div id="res-stat1" class="stat-box-val" style="font-size: 1.3rem;">0 問</div>
+            </div>
+            <div class="stat-box"
+              style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div class="stat-box-title" id="stat2-title" style="margin-bottom: 0;">一発正解数</div>
+              <div id="res-stat2" class="stat-box-val" style="font-size: 1.3rem;">0 問</div>
+            </div>
+            <div class="stat-box"
+              style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+              <div class="stat-box-title" id="stat3-title" style="margin-bottom: 0;">一発正解率</div>
+              <div id="res-stat3" class="stat-box-val" style="font-size: 1.3rem;">0.0%</div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: PIANO KEYBOARD -->
+          <div
+            style="flex: 1.5; min-width: 400px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="final-score-title" style="margin-top: 0; margin-bottom: 0;">音名ごとの正解率</div>
+            <div id="res-piano-wrapper" class="keyboard-wrapper"
+              style="pointer-events: none; transform: scale(0.92); transform-origin: left top; margin: 0 0 -18px 0;">
+              <div class="piano-keyboard">
+                <!-- White Keys -->
+                <div class="white-keys-container">
+                  <div class="key white" data-note="C4"><span class="note-name">ド</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="D4"><span class="note-name">レ</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="E4"><span class="note-name">ミ</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="F4"><span class="note-name">ファ</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="G4"><span class="note-name">ソ</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="A4"><span class="note-name">ラ</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="B4"><span class="note-name">シ</span><span
+                      class="res-key-stat">--</span></div>
+                  <div class="key white" data-note="C5"><span class="note-name">ド</span><span
+                      class="res-key-stat">--</span></div>
+                </div>
+                <!-- Black Keys -->
+                <div class="key black" data-note="C#4"><span class="note-name">ド♯<br>レ♭</span><span
+                    class="res-key-stat">--</span></div>
+                <div class="key black" data-note="D#4"><span class="note-name">レ♯<br>ミ♭</span><span
+                    class="res-key-stat">--</span></div>
+                <div class="key black" data-note="F#4"><span class="note-name">ファ♯<br>ソ♭</span><span
+                    class="res-key-stat">--</span></div>
+                <div class="key black" data-note="G#4"><span class="note-name">ソ♯<br>ラ♭</span><span
+                    class="res-key-stat">--</span></div>
+                <div class="key black" data-note="A#4"><span class="note-name">ラ♯<br>シ♭</span><span
+                    class="res-key-stat">--</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="start-btn-container" style="text-align: center;">
+          <button id="retry-btn" class="btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            PLAY AGAIN
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       0. DEBUG SETTINGS
+       ========================================================================== */
+    // trueにすると、ゲーム画面と結果画面に「開発用素点(Raw Score)」が表示されます。
+    // 非表示にする場合は false に書き換えてください。
+    const ENABLE_DEV_MODE = false; // Set to false to completely hide debug UI and preview buttons
+
+    /* ==========================================================================
+       1. DATA DEFINITIONS & CONSTANTS
+       ========================================================================== */
+    const NOTES_DATA = [
+      { id: 'C4', freq: 261.63, isBlack: false, key: 'A' },
+      { id: 'C#4', freq: 277.18, isBlack: true, key: 'W' },
+      { id: 'D4', freq: 293.66, isBlack: false, key: 'S' },
+      { id: 'D#4', freq: 311.13, isBlack: true, key: 'E' },
+      { id: 'E4', freq: 329.63, isBlack: false, key: 'D' },
+      { id: 'F4', freq: 349.23, isBlack: false, key: 'F' },
+      { id: 'F#4', freq: 369.99, isBlack: true, key: 'T' },
+      { id: 'G4', freq: 392.00, isBlack: false, key: 'G' },
+      { id: 'G#4', freq: 415.30, isBlack: true, key: 'Y' },
+      { id: 'A4', freq: 440.00, isBlack: false, key: 'H' },
+      { id: 'A#4', freq: 466.16, isBlack: true, key: 'U' },
+      { id: 'B4', freq: 493.88, isBlack: false, key: 'J' },
+      { id: 'C5', freq: 523.25, isBlack: false, key: 'K' }
+    ];
+
+    const WHITE_NOTE_IDS = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+    const BLACK_NOTE_IDS = ['C#4', 'D#4', 'F#4', 'G#4', 'A#4'];
+
+    // Key to Note ID Mapping
+    const KEY_MAP = {};
+    NOTES_DATA.forEach(n => { KEY_MAP[n.key.toLowerCase()] = n.id; });
+
+    // Frequency Lookup
+    const FREQ_MAP = {};
+    NOTES_DATA.forEach(n => { FREQ_MAP[n.id] = n.freq; });
+
+    // Mode Definitions
+    const GAME_MODES = {
+      'normal': { name: 'Normal', notes: WHITE_NOTE_IDS, desc: '' },
+      'hard': { name: 'Hard', notes: NOTES_DATA.map(n => n.id), desc: '' },
+      'normal_ex1': { name: 'Ex1', notes: ['C4', 'E4', 'G4', 'C5'], desc: '' },
+      'normal_ex2': { name: 'Ex2', notes: ['C4', 'D4', 'E4', 'G4', 'A4', 'C5'], desc: '' },
+      'hard_ex1': { name: 'Ex3', notes: [...WHITE_NOTE_IDS, 'A#4'], desc: '' },
+      'hard_ex2': { name: 'Ex4', notes: [...WHITE_NOTE_IDS, 'A#4', 'D#4'], desc: '' },
+      'hard_ex3': { name: 'Ex5', notes: [...WHITE_NOTE_IDS, 'A#4', 'D#4', 'G#4'], desc: '' },
+      'hard_ex4': { name: 'Ex6', notes: [...WHITE_NOTE_IDS, 'F#4'], desc: '' },
+      'hard_ex5': { name: 'Ex7', notes: [...WHITE_NOTE_IDS, 'F#4', 'C#4'], desc: '' },
+      'hard_ex6': { name: 'Ex8', notes: [...WHITE_NOTE_IDS, 'F#4', 'C#4', 'G#4'], desc: '' },
+      'hard_ex7': { name: 'Ex9', notes: BLACK_NOTE_IDS, desc: '' }
+    };
+
+    // Notation Definitions
+    const NOTATIONS = {
+      'italian': {
+        name: 'イタリア音名 (ドレミ)',
+        desc: '白鍵: ド, レ, ミ, ファ, ソ, ラ, シ, ド<br>黒鍵: ド♯/レ♭, レ♯/ミ♭, ファ♯/ソ♭, ソ♯/ラ♭, ラ♯/シ♭',
+        labels: {
+          'C4': 'ド', 'C#4': 'ド♯<br>レ♭', 'D4': 'レ', 'D#4': 'レ♯<br>ミ♭', 'E4': 'ミ', 'F4': 'ファ',
+          'F#4': 'ファ♯<br>ソ♭', 'G4': 'ソ', 'G#4': 'ソ♯<br>ラ♭', 'A4': 'ラ', 'A#4': 'ラ♯<br>シ♭', 'B4': 'シ', 'C5': 'ド'
+        }
+      },
+      'english': {
+        name: '英語音名 (C, D, E...)',
+        desc: '白鍵: C, D, E, F, G, A, B, C<br>黒鍵: C#/Db, D#/Eb, F#/Gb, G#/Ab, A#/Bb',
+        labels: {
+          'C4': 'C', 'C#4': 'C#<br>Db', 'D4': 'D', 'D#4': 'D#<br>Eb', 'E4': 'E', 'F4': 'F',
+          'F#4': 'F#<br>Gb', 'G4': 'G', 'G#4': 'G#<br>Ab', 'A4': 'A', 'A#4': 'A#<br>Bb', 'B4': 'B', 'C5': 'C'
+        }
+      },
+      'german': {
+        name: 'ドイツ音名 (C, D, E... H / B)',
+        desc: '白鍵: C, D, E, F, G, A, H, C<br>黒鍵: Cis/Des, Dis/Es, Fis/Ges, Gis/As, B (A#/Bbは「B」表記)',
+        labels: {
+          'C4': 'C', 'C#4': 'Cis<br>Des', 'D4': 'D', 'D#4': 'Dis<br>Es', 'E4': 'E', 'F4': 'F',
+          'F#4': 'Fis<br>Ges', 'G4': 'G', 'G#4': 'Gis<br>As', 'A4': 'A', 'A#4': 'B', 'B4': 'H', 'C5': 'C'
+        }
+      },
+      'italian_special': {
+        name: 'イタリア音名 + 特殊黒鍵名',
+        desc: '白鍵: ド, レ, ミ, ファ, ソ, ラ, シ, ド<br>黒鍵: デ, メ, フィ, サ, タ',
+        labels: {
+          'C4': 'ド', 'C#4': 'デ', 'D4': 'レ', 'D#4': 'メ', 'E4': 'ミ', 'F4': 'ファ',
+          'F#4': 'フィ', 'G4': 'ソ', 'G#4': 'サ', 'A4': 'ラ', 'A#4': 'タ', 'B4': 'シ', 'C5': 'ド'
+        }
+      }
+    };
+
+    /* ==========================================================================
+       2. WEB AUDIO API SOUND ENGINE
+       ========================================================================== */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, duration = 0.7, type = 'sine') {
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gainNode = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Attack: 15ms, Sustain: duration (0.7s), Release: 100ms
+        const attackTime = 0.015;
+        const sustainDuration = duration;
+        const releaseTime = 0.1;
+
+        gainNode.gain.setValueAtTime(0.0001, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + attackTime);
+        // Sustain 0.7s at peak volume
+        gainNode.gain.setValueAtTime(0.3, now + attackTime + sustainDuration);
+        // Smooth Release fade out to prevent clicks
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, now + attackTime + sustainDuration + releaseTime);
+
+        osc.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+
+        const stopTime = now + attackTime + sustainDuration + releaseTime + 0.02;
+        osc.start(now);
+        osc.stop(stopTime);
+      }
+    }
+
+    const soundEngine = new AudioEngine();
+
+    /* ==========================================================================
+       3. GAME STATE & LOGIC
+       ========================================================================== */
+    class GameController {
+      constructor() {
+        this.gameType = 'score_attack';
+        this.currentMode = 'normal';
+        this.currentNotation = 'italian';
+
+        // Game Progress
+        this.questions = [];
+        this.currentQIndex = 0;
+        this.totalSolved = 0;
+        this.totalAttempts = 0;
+        this.score = 0;
+        this.firstTryCorrectCount = 0;
+        this.noteStats = {};
+
+        // Timer
+        this.timeLeft = 90;
+        this.timerId = null;
+        this.isTimeUp = false;
+
+        // Question states
+        this.targetNoteId = null;
+        this.qStartTime = 0;
+        this.mistakesInCurrentQ = 0;
+        this.responseTimes = [];
+        this.isQAnswered = false;
+
+        this.initDOM();
+        this.bindEvents();
+        this.updateLabels();
+      }
+
+      initDOM() {
+        // Views
+        this.startView = document.getElementById('start-view');
+        this.gameView = document.getElementById('game-view');
+        this.resultView = document.getElementById('result-view');
+
+        // Inputs
+        this.gameTypeSelect = document.getElementById('game-type-select');
+        this.modeSelect = document.getElementById('mode-select');
+        this.notationSelect = document.getElementById('notation-select');
+        this.tuningSelect = document.getElementById('tuning-select');
+        this.waveformSelect = document.getElementById('waveform-select');
+
+        // Buttons
+        this.startBtn = document.getElementById('start-btn');
+        this.replayBtn = document.getElementById('replay-btn');
+        this.interruptBtn = document.getElementById('interrupt-btn');
+        this.retryBtn = document.getElementById('retry-btn');
+
+        // Game Status Header Elements
+        this.qTotalSolved = document.getElementById('q-total-solved');
+        this.qFirstTry = document.getElementById('q-first-try');
+        this.timerBox = document.getElementById('timer-box');
+        this.qTimerElem = document.getElementById('q-timer');
+        this.feedbackElem = document.getElementById('feedback-msg');
+
+        // Result Elements
+        this.resDifficultyBadge = document.getElementById('res-difficulty-badge');
+        this.resScore = document.getElementById('res-score');
+        this.stat1Title = document.getElementById('stat1-title');
+        this.resStat1 = document.getElementById('res-stat1');
+        this.stat2Title = document.getElementById('stat2-title');
+        this.resStat2 = document.getElementById('res-stat2');
+        this.stat3Title = document.getElementById('stat3-title');
+        this.resStat3 = document.getElementById('res-stat3');
+
+        // Toggle Dev Features based on flag
+        if (!ENABLE_DEV_MODE) {
+          const previewContainer = document.getElementById('dev-preview-container');
+          if (previewContainer) previewContainer.style.display = 'none';
+        }
+
+        // Piano Keys DOM
+        this.keys = document.querySelectorAll('.key');
+      }
+
+      bindEvents() {
+        // Game Type Change
+        this.gameTypeSelect.addEventListener('change', (e) => {
+          this.gameType = e.target.value;
+        });
+
+        // Mode & Notation Change
+        this.modeSelect.addEventListener('change', (e) => {
+          this.currentMode = e.target.value;
+          this.highlightActiveModeKeys();
+        });
+
+        this.notationSelect.addEventListener('change', (e) => {
+          this.currentNotation = e.target.value;
+          this.updateLabels();
+        });
+
+        // Start & Retry Buttons
+        this.startBtn.addEventListener('click', () => this.startGame());
+        this.retryBtn.addEventListener('click', () => this.showStartScreen());
+        this.replayBtn.addEventListener('click', () => this.replayCurrentNote());
+        this.interruptBtn.addEventListener('click', () => {
+          this.isTimeUp = true;
+          this.showStartScreen();
+        });
+
+        // Keyboard Clicks / Touches
+        this.keys.forEach(keyElem => {
+          const noteId = keyElem.getAttribute('data-note');
+
+          const handlePress = (e) => {
+            e.preventDefault();
+            this.handleKeyTrigger(noteId);
+          };
+
+          keyElem.addEventListener('mousedown', handlePress);
+          keyElem.addEventListener('touchstart', handlePress, { passive: false });
+        });
+
+        // PC Physical Keyboard Mapping
+        window.addEventListener('keydown', (e) => {
+          if (e.repeat) return;
+          const k = e.key.toLowerCase();
+
+          // Space for replay
+          if (e.code === 'Space') {
+            if (this.gameView.classList.contains('active')) {
+              e.preventDefault();
+              this.replayCurrentNote();
+            }
+            return;
+          }
+
+          if (KEY_MAP[k]) {
+            this.handleKeyTrigger(KEY_MAP[k]);
+          }
+        });
+
+        // Dev Debug Events
+        const previewBtns = document.querySelectorAll('.dev-preview-custom-btn');
+        const scoreInput = document.getElementById('dev-score-input');
+        previewBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const val = parseInt(scoreInput.value, 10);
+            this.previewCustomResult(isNaN(val) ? 100000 : val);
+          });
+        });
+      }
+
+      previewCustomResult(finalScore) {
+        this.devForcedFinalScore = finalScore;
+        this.score = 100000;
+        this.totalSolved = 40;
+        this.totalAttempts = 40;
+        this.firstTryCorrectCount = 40;
+        this.responseTimes = [450];
+        this.gameType = 'score_attack';
+
+        // Mock stats for preview (100% down to 65% in 5% steps for C4-C5)
+        this.noteStats = {
+          'C4': { asked: 100, firstTryCorrect: 100 },
+          'D4': { asked: 100, firstTryCorrect: 95 },
+          'E4': { asked: 100, firstTryCorrect: 90 },
+          'F4': { asked: 100, firstTryCorrect: 85 },
+          'G4': { asked: 100, firstTryCorrect: 80 },
+          'A4': { asked: 100, firstTryCorrect: 75 },
+          'B4': { asked: 100, firstTryCorrect: 70 },
+          'C5': { asked: 100, firstTryCorrect: 65 },
+          // Mock some black keys to show gray
+          'C#4': { asked: 100, firstTryCorrect: 50 },
+          'D#4': { asked: 100, firstTryCorrect: 30 }
+        };
+
+        this.finishGame();
+      }
+
+      updateLabels() {
+        const labelsMap = NOTATIONS[this.currentNotation].labels;
+        this.keys.forEach(keyElem => {
+          const noteId = keyElem.getAttribute('data-note');
+          const labelSpan = keyElem.querySelector('.note-name');
+          if (labelSpan && labelsMap[noteId]) {
+            labelSpan.innerHTML = labelsMap[noteId];
+          }
+        });
+      }
+
+      highlightActiveModeKeys() {
+        const activeNoteIds = GAME_MODES[this.currentMode].notes;
+        this.keys.forEach(keyElem => {
+          const noteId = keyElem.getAttribute('data-note');
+          if (activeNoteIds.includes(noteId)) {
+            keyElem.classList.remove('out-of-mode');
+          } else {
+            keyElem.classList.add('out-of-mode');
+          }
+        });
+      }
+
+      showView(viewName) {
+        this.startView.classList.remove('active');
+        this.gameView.classList.remove('active');
+        this.resultView.classList.remove('active');
+
+        if (viewName === 'start') this.startView.classList.add('active');
+        if (viewName === 'game') this.gameView.classList.add('active');
+        if (viewName === 'result') this.resultView.classList.add('active');
+      }
+
+      showStartScreen() {
+        if (this.timerId) clearInterval(this.timerId);
+        this.showView('start');
+        this.highlightActiveModeKeys();
+      }
+
+      startGame() {
+        soundEngine.init();
+
+        // Apply Tuning
+        const targetFreq = parseFloat(this.tuningSelect.value);
+        const ratio = targetFreq / 440.0;
+        NOTES_DATA.forEach(n => {
+          FREQ_MAP[n.id] = n.freq * ratio;
+        });
+
+        this.currentWaveform = this.waveformSelect.value;
+
+        this.score = 0;
+        this.totalSolved = 0;
+        this.totalAttempts = 0;
+        this.firstTryCorrectCount = 0;
+        this.responseTimes = [];
+        this.currentQIndex = 0;
+        this.practiceErrors = {};
+        this.noteStats = {};
+
+        if (this.timerId) clearInterval(this.timerId);
+        this.isTimeUp = false;
+
+        const debugElem = document.getElementById('practice-debug-prob');
+        if (debugElem) debugElem.style.display = 'none';
+
+        if (this.gameType === 'score_attack') {
+          // Score Attack setup
+          this.timerBox.style.display = 'block';
+          this.qTimerElem.textContent = '90.0s';
+          this.qTimerElem.classList.remove('warning');
+
+          this.qTotalSolved.textContent = '0';
+          this.qFirstTry.textContent = '0';
+
+          this.startTimer();
+        } else {
+          // Practice Mode setup (unlimited)
+          this.timerBox.style.display = 'none';
+          this.qTotalSolved.textContent = '0';
+          this.qFirstTry.textContent = '0';
+        }
+
+        this.highlightActiveModeKeys();
+        this.showView('game');
+        this.nextQuestion();
+      }
+
+      startTimer() {
+        const startTime = performance.now();
+        const durationMs = 90000;
+
+        this.timerId = setInterval(() => {
+          const elapsed = performance.now() - startTime;
+          const remainingMs = Math.max(0, durationMs - elapsed);
+          const remainingSec = (remainingMs / 1000).toFixed(1);
+
+          this.qTimerElem.textContent = `${remainingSec}s`;
+
+          if (remainingMs <= 10000) {
+            this.qTimerElem.classList.add('warning');
+          }
+
+          if (remainingMs <= 0) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+            this.isTimeUp = true;
+            this.qTimerElem.textContent = '0.0s';
+          }
+        }, 30);
+      }
+
+      updatePracticeDebugProb() {
+        if (this.gameType !== 'practice') return;
+        const debugElem = document.getElementById('practice-debug-prob');
+        if (!debugElem) return;
+
+        const modeNotes = GAME_MODES[this.currentMode].notes;
+        const weights = modeNotes.map(note => 1 + (this.practiceErrors[note] || 0));
+        const totalWeight = weights.reduce((a, b) => a + b, 0);
+
+        const currentLabels = NOTATIONS[this.currentNotation].labels;
+        const probStrings = modeNotes.map((note, i) => {
+          const label = (currentLabels[note] || note).replace(/<br>/g, '/');
+          return `${label}: ${(weights[i] / totalWeight * 100).toFixed(1)}%`;
+        });
+        debugElem.textContent = `[DEV] 出現確率: ${probStrings.join(', ')}`;
+        debugElem.style.display = 'block';
+      }
+
+      nextQuestion() {
+        this.currentQIndex++;
+        this.mistakesInCurrentQ = 0;
+        this.isQAnswered = false;
+
+        const modeNotes = GAME_MODES[this.currentMode].notes;
+
+        if (this.gameType === 'practice') {
+          const weights = modeNotes.map(note => 1 + (this.practiceErrors[note] || 0));
+          const totalWeight = weights.reduce((a, b) => a + b, 0);
+
+          this.updatePracticeDebugProb();
+
+          let rand = Math.random() * totalWeight;
+          this.targetNoteId = modeNotes[modeNotes.length - 1]; // fallback
+          for (let i = 0; i < modeNotes.length; i++) {
+            rand -= weights[i];
+            if (rand <= 0) {
+              this.targetNoteId = modeNotes[i];
+              break;
+            }
+          }
+        } else {
+          this.targetNoteId = modeNotes[Math.floor(Math.random() * modeNotes.length)];
+        }
+
+        // Track asked count
+        if (!this.noteStats[this.targetNoteId]) {
+          this.noteStats[this.targetNoteId] = { asked: 0, firstTryCorrect: 0 };
+        }
+        this.noteStats[this.targetNoteId].asked++;
+
+        this.qTotalSolved.textContent = this.totalSolved;
+        this.qFirstTry.textContent = this.firstTryCorrectCount;
+
+        // Update Status UI
+        this.feedbackElem.textContent = '出題中... 音を聴いて答えてください';
+        this.feedbackElem.className = 'feedback-msg';
+
+        // Play Question Sound immediately when new question arrives
+        setTimeout(() => {
+          if (this.gameView.classList.contains('active')) {
+            this.playTargetNote();
+            this.qStartTime = performance.now();
+          }
+        }, 100);
+      }
+
+      playTargetNote() {
+        if (this.targetNoteId && FREQ_MAP[this.targetNoteId]) {
+          soundEngine.playTone(FREQ_MAP[this.targetNoteId], 0.7, this.currentWaveform);
+        }
+      }
+
+      replayCurrentNote() {
+        if (this.gameView.classList.contains('active')) {
+          this.playTargetNote();
+        }
+      }
+
+      handleKeyTrigger(noteId) {
+        // Sound response on any press (0.7s sustain)
+        if (FREQ_MAP[noteId]) {
+          soundEngine.playTone(FREQ_MAP[noteId], 0.7, this.currentWaveform);
+        }
+
+        // Trigger Key Active Visual
+        const keyElem = document.querySelector(`.key[data-note="${noteId}"]`);
+        if (keyElem) {
+          keyElem.classList.add('active');
+          setTimeout(() => keyElem.classList.remove('active'), 150);
+        }
+
+        // Only evaluate if in game view
+        if (!this.gameView.classList.contains('active') || this.isQAnswered) {
+          return;
+        }
+
+        // Ignore notes that are not in the current mode's active sound range
+        const activeNotes = GAME_MODES[this.currentMode].notes;
+        if (!activeNotes.includes(noteId)) {
+          return;
+        }
+
+        this.totalAttempts++;
+
+        // Check Answer
+        if (noteId === this.targetNoteId) {
+          // CORRECT!
+          this.isQAnswered = true;
+          this.totalSolved++;
+          const timeTakenMs = performance.now() - this.qStartTime;
+          this.responseTimes.push(timeTakenMs);
+
+          // Calculate Score
+          // Base: 1000pt
+          // Time Bonus: max +500pt (linear reduction up to 3 seconds)
+          const timeBonus = Math.max(0, Math.round(500 * (1 - Math.min(3000, timeTakenMs) / 3000)));
+          // Penalty: -300pt per mistake
+          const penalty = this.mistakesInCurrentQ * 300;
+          const earnedPts = Math.max(0, 1000 + timeBonus - penalty);
+
+          this.score += earnedPts;
+
+          if (this.mistakesInCurrentQ === 0) {
+            this.firstTryCorrectCount++;
+
+            if (this.noteStats[this.targetNoteId]) {
+              this.noteStats[this.targetNoteId].firstTryCorrect++;
+            }
+
+            if (this.gameType === 'practice') {
+              this.practiceErrors[this.targetNoteId] = Math.max(0, (this.practiceErrors[this.targetNoteId] || 0) - 1);
+              this.updatePracticeDebugProb();
+            }
+          }
+
+          // UI Visual Feedback
+          if (keyElem) keyElem.classList.add('correct-flash');
+          this.feedbackElem.textContent = `正解！`;
+          this.feedbackElem.className = 'feedback-msg correct';
+
+          this.qTotalSolved.textContent = this.totalSolved;
+          this.qFirstTry.textContent = this.firstTryCorrectCount;
+
+          setTimeout(() => {
+            if (keyElem) keyElem.classList.remove('correct-flash');
+            if (this.gameView.classList.contains('active')) {
+              if (this.isTimeUp) {
+                this.finishGame();
+              } else {
+                this.nextQuestion();
+              }
+            }
+          }, 600);
+
+        } else {
+          // WRONG!
+          if (this.gameType === 'practice') {
+            this.practiceErrors[this.targetNoteId] = (this.practiceErrors[this.targetNoteId] || 0) + 1;
+            this.practiceErrors[noteId] = (this.practiceErrors[noteId] || 0) + 1;
+            this.updatePracticeDebugProb();
+          }
+          this.mistakesInCurrentQ++;
+
+          if (keyElem) keyElem.classList.add('wrong-flash');
+          this.feedbackElem.textContent = '不正解...';
+          this.feedbackElem.className = 'feedback-msg wrong';
+
+          setTimeout(() => {
+            if (keyElem) keyElem.classList.remove('wrong-flash');
+          }, 350);
+        }
+      }
+
+      finishGame() {
+        if (this.timerId) {
+          clearInterval(this.timerId);
+          this.timerId = null;
+        }
+
+        this.showView('result');
+
+        // Accuracy Calculations (First-try ratio in %)
+        const totalQ = this.gameType === 'score_attack' ? this.totalSolved : 20;
+        const firstTryRatio = totalQ > 0 ? (this.firstTryCorrectCount / totalQ) : 0;
+        const firstTryPct = firstTryRatio * 100;
+
+        // ======================================================================
+        // 2D Bilinear Interpolation with Grid Table (100,000 Scale)
+        // ======================================================================
+        const RAW_SCORE_GRID = [0, 5000, 15000, 30000, 60000, 80000, 100000];
+        const ACCURACY_GRID = [0, 20, 50, 80, 90, 95, 100];
+
+        // SCORE_TABLE[rawScoreIndex][accuracyIndex]
+        const SCORE_TABLE = [
+          // Acc: 0%,   20%,   50%,   80%,   90%,   95%,  100%
+          [0, 8000, 20000, 60000, 70000, 73000, 75000],      // 素点 0
+          [30000, 50000, 70000, 82000, 87000, 91000, 93000],  // 素点 5,000
+          [40000, 63000, 80000, 88000, 92000, 94000, 95000],  // 素点 15,000
+          [47000, 70000, 85000, 90000, 93000, 96000, 97000],  // 素点 30,000
+          [50000, 78000, 88000, 92000, 95000, 97500, 100000],  // 素点 60,000
+          [55000, 84000, 90000, 95000, 99000, 101000, 102000], // 素点 80,000
+          [60000, 87000, 92000, 97000, 101000, 102000, 103000] // 素点 100,000
+        ];
+
+        // 1. Find Raw Score Interval (Row i)
+        let r = 0;
+        for (let i = 0; i < RAW_SCORE_GRID.length - 1; i++) {
+          if (this.score >= RAW_SCORE_GRID[i]) {
+            r = i;
+          }
+        }
+        if (r >= RAW_SCORE_GRID.length - 1) r = RAW_SCORE_GRID.length - 2;
+
+        // 2. Find Accuracy Interval (Column j)
+        let c = 0;
+        for (let j = 0; j < ACCURACY_GRID.length - 1; j++) {
+          if (firstTryPct >= ACCURACY_GRID[j]) {
+            c = j;
+          }
+        }
+        if (c >= ACCURACY_GRID.length - 1) c = ACCURACY_GRID.length - 2;
+
+        // Normalize u (Raw Score) and v (Accuracy Pct) in [0, 1]
+        const x0 = RAW_SCORE_GRID[r], x1 = RAW_SCORE_GRID[r + 1];
+        const y0 = ACCURACY_GRID[c], y1 = ACCURACY_GRID[c + 1];
+
+        const clampRaw = Math.min(x1, Math.max(x0, this.score));
+        const clampAcc = Math.min(y1, Math.max(y0, firstTryPct));
+
+        const u = (x1 === x0) ? 0 : (clampRaw - x0) / (x1 - x0);
+        const v = (y1 === y0) ? 0 : (clampAcc - y0) / (y1 - y0);
+
+        // Corner values from 2D Array
+        const q00 = SCORE_TABLE[r][c];
+        const q10 = SCORE_TABLE[r + 1][c];
+        const q01 = SCORE_TABLE[r][c + 1];
+        const q11 = SCORE_TABLE[r + 1][c + 1];
+
+        // Bilinear Interpolation Formula
+        const interpolatedScore = (1 - u) * (1 - v) * q00 +
+          u * (1 - v) * q10 +
+          (1 - u) * v * q01 +
+          u * v * q11;
+
+        let finalScore = Math.min(100000, Math.max(0, Math.round(interpolatedScore)));
+
+        if (this.devForcedFinalScore !== undefined) {
+          finalScore = this.devForcedFinalScore;
+          this.devForcedFinalScore = undefined;
+        }
+
+        // Avg Response Time
+        const avgTimeMs = this.responseTimes.length > 0
+          ? this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length
+          : 0;
+        const avgTimeSec = (avgTimeMs / 1000).toFixed(2);
+
+        // Format score with dots (e.g. 100.000 / 28.500)
+        const formattedScore = finalScore.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        const modeName = GAME_MODES[this.currentMode].name;
+
+        if (this.gameType === 'score_attack') {
+          this.resDifficultyBadge.textContent = modeName;
+          this.stat1Title.textContent = '総正解数';
+          this.resStat1.textContent = `${this.totalSolved} 問`;
+          this.stat2Title.textContent = '一発正解数';
+          this.resStat2.textContent = `${this.firstTryCorrectCount} 問`;
+          this.stat3Title.textContent = '一発正解率';
+          this.resStat3.textContent = `${firstTryPct.toFixed(1)}%`;
+        } else {
+          this.resDifficultyBadge.textContent = modeName;
+          this.stat1Title.textContent = '総問題数';
+          this.resStat1.textContent = '20 問';
+          this.stat2Title.textContent = '一発正解数';
+          this.resStat2.textContent = `${this.firstTryCorrectCount} 問`;
+          this.stat3Title.textContent = '一発正解率';
+          this.resStat3.textContent = `${firstTryPct.toFixed(1)}%`;
+        }
+
+        const currentLabels = NOTATIONS[this.currentNotation].labels;
+        const resPianoWrapper = document.getElementById('res-piano-wrapper');
+
+        if (resPianoWrapper) {
+          const resKeys = resPianoWrapper.querySelectorAll('.key');
+          const modeNotesForStats = GAME_MODES[this.currentMode].notes;
+
+          resKeys.forEach(keyElem => {
+            const noteId = keyElem.getAttribute('data-note');
+            const statSpan = keyElem.querySelector('.res-key-stat');
+            const labelSpan = keyElem.querySelector('.note-name');
+
+            // Update notation label
+            if (labelSpan && currentLabels[noteId]) {
+              labelSpan.innerHTML = currentLabels[noteId];
+            }
+
+            if (modeNotesForStats.includes(noteId)) {
+              keyElem.classList.remove('out-of-mode');
+              const stats = this.noteStats[noteId] || { asked: 0, firstTryCorrect: 0 };
+              let pct = 100; // Default to 100% if in-mode but never asked
+              if (stats.asked > 0) {
+                pct = Math.round((stats.firstTryCorrect / stats.asked) * 100);
+              }
+
+              statSpan.textContent = `${pct}%`;
+
+              // Color coding
+              statSpan.style.color = ''; // Reset inline color
+              statSpan.className = 'res-key-stat'; // Reset classes
+              if (pct >= 95) statSpan.classList.add('stat-text-rainbow');
+              else if (pct >= 85) statSpan.classList.add('stat-text-gold');
+              else if (pct >= 75) statSpan.classList.add('stat-text-red');
+              else if (pct >= 65) statSpan.classList.add('stat-text-blue');
+              else statSpan.classList.add('stat-text-gray');
+            } else {
+              keyElem.classList.add('out-of-mode');
+              statSpan.textContent = '';
+              statSpan.className = 'res-key-stat';
+            }
+          });
+        }
+
+        // Color effect based on score
+        this.resScore.classList.remove('rainbow', 'gold');
+        if (finalScore >= 100000) {
+          this.resScore.classList.add('rainbow');
+        } else if (finalScore >= 90000) {
+          this.resScore.classList.add('gold');
+        }
+
+        // Display
+        this.resScore.textContent = formattedScore;
+      }
+    }
+
+    // Initialize Game on DOM Content Loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      window.gameApp = new GameController();
+    });
+  </script>
+</body>
+
+</html>
