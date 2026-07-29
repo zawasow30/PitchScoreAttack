@@ -318,7 +318,7 @@
 
     .feedback-msg {
       height: 28px;
-      margin-top: 12px;
+      margin-bottom: 12px;
       font-size: 1.1rem;
       font-weight: 700;
       letter-spacing: 1px;
@@ -761,12 +761,16 @@
       }
 
       .keyboard-wrapper.result-keyboard-wrapper {
-        transform: scale(0.88);
-        transform-origin: left top;
+        transform: none;
         margin: 0 0 0 -16px; /* Cancel app-container left padding */
         padding-left: 0;
         justify-content: flex-start;
-        width: calc(100% + 32px); /* Allow it to span full screen width */
+        width: 100vw;
+      }
+
+      .result-keyboard-wrapper .piano-keyboard {
+        transform: scale(min(1, calc(100vw / 380)));
+        transform-origin: left top;
       }
     }
   </style>
@@ -918,6 +922,7 @@
 
       <!-- Playback Area -->
       <div class="playback-area">
+        <div id="feedback-msg" class="feedback-msg">再生された音をキーボードまたはタップで当ててください</div>
         <div style="display: flex; justify-content: center; gap: 12px;">
           <button id="replay-btn" class="replay-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -933,7 +938,6 @@
             中断する
           </button>
         </div>
-        <div id="feedback-msg" class="feedback-msg">再生された音をキーボードまたはタップで当ててください</div>
         <div id="practice-debug-prob"
           style="display: none; margin-top: 10px; font-size: 0.8rem; color: #ffcc00; text-align: center; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.5; word-wrap: break-word;">
         </div>
