@@ -1517,6 +1517,13 @@
 
         this.highlightActiveModeKeys();
         this.showView('game');
+        
+        // Scroll to the bottom to ensure keyboard is fully visible
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          behavior: 'smooth'
+        });
+
         this.nextQuestion();
       }
 
