@@ -421,6 +421,11 @@
       padding-bottom: 8px;
     }
 
+    .fat-black-keys-mode .key.black {
+      width: 64px;
+      margin-left: -9px;
+    }
+
     .key.black:hover {
       background: linear-gradient(180deg, #3d4358 0%, #1a1e2b 100%);
     }
@@ -701,6 +706,11 @@
         padding-bottom: 6px;
       }
 
+      .fat-black-keys-mode .key.black {
+        width: 44px;
+        margin-left: -6px;
+      }
+
       .key[data-note="C#4"] {
         left: 28px;
       }
@@ -865,6 +875,21 @@
             <option value="english">英語音名 (C, D, E...)</option>
             <option value="german">ドイツ音名 (C, D, E... H / B)</option>
             <option value="italian_special" id="opt-italian-special" hidden>イタリア音名 + 特殊黒鍵名 (デメフィサタ)</option>
+          </select>
+        </div>
+
+        <!-- Hitbox Select -->
+        <div class="setting-card">
+          <div class="setting-label">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            黒鍵の判定
+          </div>
+          <select id="hitbox-select" class="select-input">
+            <option value="normal" selected>Normal (標準)</option>
+            <option value="wide">Wide (広げる)</option>
           </select>
         </div>
 
@@ -1336,6 +1361,17 @@
           this.currentNotation = e.target.value;
           this.updateLabels();
         });
+
+        const hitboxSelect = document.getElementById('hitbox-select');
+        if (hitboxSelect) {
+          hitboxSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'wide') {
+              document.body.classList.add('fat-black-keys-mode');
+            } else {
+              document.body.classList.remove('fat-black-keys-mode');
+            }
+          });
+        }
 
         // Easter Egg: Unlock Italian Special Notation
         const secretP = document.getElementById('secret-p');
