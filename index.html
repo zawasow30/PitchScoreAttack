@@ -1577,7 +1577,7 @@
 
         this.highlightActiveModeKeys();
         this.showView('game');
-        
+
         // Scroll to the bottom to ensure keyboard is fully visible
         window.scrollTo({
           top: document.body.scrollHeight,
@@ -1729,11 +1729,9 @@
 
           // Calculate Score
           // Base: 1000pt
-          // Time Bonus: max +500pt (linear reduction up to 3 seconds)
-          const timeBonus = Math.max(0, Math.round(500 * (1 - Math.min(3000, timeTakenMs) / 3000)));
           // Penalty: -300pt per mistake
           const penalty = this.mistakesInCurrentQ * 300;
-          const earnedPts = Math.max(0, 1000 + timeBonus - penalty);
+          const earnedPts = Math.max(0, 1000 - penalty);
 
           this.score += earnedPts;
 
@@ -1795,6 +1793,43 @@
         }
 
         this.showView('result');
+
+        // Consistency Bonus (解答時間のばらつきが少ないほど加点)
+        if (this.responseTimes.length > 1) {
+          const mean = this.responseTimes.reduce((a, b) => a + b, 0) / this.responseTimes.length;
+          const variance = this.responseTimes.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / this.responseTimes.length;
+          const stdDev = Math.sqrt(variance);
+
+          // 標準偏差(stdDev)に基づく安定感ボーナスをテーブルの線形補間で算出
+          const CONSISTENCY_BONUS_TABLE = [
+            { s: 0, b: 300 },
+            { s: 100, b: 250 }, // 標準偏差50msまでは満点
+            { s: 250, b: 200 },
+            { s: 400, b: 100 },
+            { s: 600, b: 0 }
+          ];
+
+          let consistencyBonusPerQ = 0;
+          if (stdDev <= CONSISTENCY_BONUS_TABLE[0].s) {
+            consistencyBonusPerQ = CONSISTENCY_BONUS_TABLE[0].b;
+          } else if (stdDev >= CONSISTENCY_BONUS_TABLE[CONSISTENCY_BONUS_TABLE.length - 1].s) {
+            consistencyBonusPerQ = CONSISTENCY_BONUS_TABLE[CONSISTENCY_BONUS_TABLE.length - 1].b;
+          } else {
+            for (let i = 0; i < CONSISTENCY_BONUS_TABLE.length - 1; i++) {
+              const p1 = CONSISTENCY_BONUS_TABLE[i];
+              const p2 = CONSISTENCY_BONUS_TABLE[i + 1];
+              if (stdDev >= p1.s && stdDev < p2.s) {
+                const ratio = (stdDev - p1.s) / (p2.s - p1.s);
+                consistencyBonusPerQ = Math.round(p1.b + ratio * (p2.b - p1.b));
+                break;
+              }
+            }
+          }
+          const totalConsistencyBonus = Math.round(consistencyBonusPerQ * this.responseTimes.length);
+          this.score += totalConsistencyBonus;
+
+          console.log(`[Result] Mean: ${mean.toFixed(1)}ms, StdDev: ${stdDev.toFixed(1)}ms -> Consistency Bonus: +${totalConsistencyBonus}pt (Raw)`);
+        }
 
         // Accuracy Calculations (First-try ratio in %)
         const totalQ = this.gameType === 'score_attack' ? this.totalSolved : 20;
