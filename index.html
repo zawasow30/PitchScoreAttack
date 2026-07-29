@@ -881,7 +881,6 @@
             <option value="italian" selected>イタリア音名 (ドレミ)</option>
             <option value="english">英語音名 (C, D, E...)</option>
             <option value="german">ドイツ音名 (C, D, E... H / B)</option>
-            <option value="italian_special" id="opt-italian-special" hidden>イタリア音名 + 特殊黒鍵名 (デメフィサタ)</option>
           </select>
         </div>
 
@@ -1384,13 +1383,17 @@
         const secretP = document.getElementById('secret-p');
         if (secretP) {
           secretP.addEventListener('click', () => {
-            const opt = document.getElementById('opt-italian-special');
-            if (opt) {
-              opt.hidden = false;
-              this.notationSelect.value = 'italian_special';
-              this.notationSelect.dispatchEvent(new Event('change'));
-              secretP.style.color = 'var(--accent-purple)';
+            let opt = document.getElementById('opt-italian-special');
+            if (!opt) {
+              opt = document.createElement('option');
+              opt.id = 'opt-italian-special';
+              opt.value = 'italian_special';
+              opt.textContent = 'イタリア音名 + 特殊黒鍵名 (デメフィサタ)';
+              this.notationSelect.appendChild(opt);
             }
+            this.notationSelect.value = 'italian_special';
+            this.notationSelect.dispatchEvent(new Event('change'));
+            secretP.style.color = 'var(--accent-purple)';
           });
         }
 
