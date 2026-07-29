@@ -1743,8 +1743,8 @@
         // SCORE_TABLE[rawScoreIndex][accuracyIndex]
         const SCORE_TABLE = [
           // Acc: 0%,   20%,   50%,   80%,   90%,   95%,  100%
-          [0, 8000, 20000, 60000, 70000, 73000, 75000],      // 素点 0
-          [30000, 50000, 70000, 82000, 87000, 91000, 93000],  // 素点 5,000
+          [0, 1000, 10000, 16000, 18000, 19000, 20000],      // 素点 0
+          [30000, 50000, 60000, 72000, 77000, 81000, 83000],  // 素点 5,000
           [40000, 63000, 80000, 88000, 92000, 94000, 95000],  // 素点 15,000
           [47000, 70000, 85000, 90000, 93000, 96000, 97000],  // 素点 30,000
           [50000, 78000, 88000, 92000, 95000, 97500, 100000],  // 素点 60,000
@@ -1853,7 +1853,7 @@
             if (modeNotesForStats.includes(noteId)) {
               keyElem.classList.remove('out-of-mode');
               const stats = this.noteStats[noteId] || { asked: 0, firstTryCorrect: 0 };
-              
+
               statSpan.style.color = ''; // Reset inline color
               statSpan.className = 'res-key-stat'; // Reset classes
 
