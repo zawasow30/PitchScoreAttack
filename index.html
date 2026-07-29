@@ -746,6 +746,7 @@
 
       .result-columns {
         flex-direction: column-reverse;
+        flex-wrap: nowrap;
         gap: 20px;
       }
 
@@ -760,10 +761,12 @@
       }
 
       .keyboard-wrapper.result-keyboard-wrapper {
-        transform: scale(1);
-        margin: 0;
+        transform: scale(0.88);
+        transform-origin: left top;
+        margin: 0 0 0 -16px; /* Cancel app-container left padding */
         padding-left: 0;
         justify-content: flex-start;
+        width: calc(100% + 32px); /* Allow it to span full screen width */
       }
     }
   </style>
