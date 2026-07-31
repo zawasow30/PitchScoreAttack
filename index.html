@@ -856,16 +856,37 @@
           <select id="mode-select" class="select-input">
             <option value="normal" selected>Normal (白鍵のみ)</option>
             <option value="hard">Hard (全部)</option>
-            <option value="normal_ex1">Ex1 (ド・ミ・ソ・ド)</option>
-            <option value="normal_ex2">Ex2 (ド・レ・ミ・ソ・ラ・ド)</option>
-            <option value="hard_ex1">Ex3 (白鍵 + シ♭)</option>
-            <option value="hard_ex2">Ex4 (白鍵 + シ♭, ミ♭)</option>
-            <option value="hard_ex3">Ex5 (白鍵 + シ♭, ミ♭, ラ♭)</option>
-            <option value="hard_ex4">Ex6 (白鍵 + ファ♯)</option>
-            <option value="hard_ex5">Ex7 (白鍵 + ファ♯, ド♯)</option>
-            <option value="hard_ex6">Ex8 (白鍵 + ファ♯, ド♯, ソ♯)</option>
-            <option value="hard_ex7">Ex9 (黒鍵のみ)</option>
+            <option value="custom">Custom (カスタム)</option>
           </select>
+
+          <!-- Custom Mode Keyboard -->
+          <div id="custom-mode-settings" style="display: none; margin-top: 15px; text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px;">出題する音をタップして選択</div>
+            <div class="keyboard-wrapper" style="transform: scale(0.6); transform-origin: top center; margin-bottom: -90px; padding: 0;">
+              <div class="piano-keyboard" id="setting-keyboard">
+                <div class="white-keys-container">
+                  <div class="key white" data-note="C4"><span class="note-name">ド</span><span class="key-bind">A</span></div>
+                  <div class="key white" data-note="D4"><span class="note-name">レ</span><span class="key-bind">S</span></div>
+                  <div class="key white" data-note="E4"><span class="note-name">ミ</span><span class="key-bind">D</span></div>
+                  <div class="key white" data-note="F4"><span class="note-name">ファ</span><span class="key-bind">F</span></div>
+                  <div class="key white" data-note="G4"><span class="note-name">ソ</span><span class="key-bind">G</span></div>
+                  <div class="key white" data-note="A4"><span class="note-name">ラ</span><span class="key-bind">H</span></div>
+                  <div class="key white" data-note="B4"><span class="note-name">シ</span><span class="key-bind">J</span></div>
+                  <div class="key white" data-note="C5"><span class="note-name">ド</span><span class="key-bind">K</span></div>
+                </div>
+                <div class="key black" data-note="C#4"><span class="note-name">ド♯<br>レ♭</span><span class="key-bind">W</span></div>
+                <div class="key black" data-note="D#4"><span class="note-name">レ♯<br>ミ♭</span><span class="key-bind">E</span></div>
+                <div class="key black" data-note="F#4"><span class="note-name">ファ♯<br>ソ♭</span><span class="key-bind">T</span></div>
+                <div class="key black" data-note="G#4"><span class="note-name">ソ♯<br>ラ♭</span><span class="key-bind">Y</span></div>
+                <div class="key black" data-note="A#4"><span class="note-name">ラ♯<br>シ♭</span><span class="key-bind">U</span></div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; display: flex; justify-content: center; gap: 12px; margin-bottom: 8px;">
+              <button id="custom-all-on-btn" style="background: rgba(22, 28, 48, 0.9); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">全部オン (Z)</button>
+              <button id="custom-all-off-btn" style="background: rgba(22, 28, 48, 0.9); color: var(--accent-red); border: 1px solid var(--accent-red); padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; cursor: pointer;">全部オフ (X)</button>
+            </div>
+            <div id="custom-mode-error" style="color: var(--accent-red); font-size: 0.75rem; font-weight: bold; opacity: 0; transition: opacity 0.2s;">※1つ以上の音を選択してください</div>
+          </div>
         </div>
 
         <!-- Notation Select -->
@@ -1176,15 +1197,7 @@
     const GAME_MODES = {
       'normal': { name: 'Normal', notes: WHITE_NOTE_IDS, desc: '' },
       'hard': { name: 'Hard', notes: NOTES_DATA.map(n => n.id), desc: '' },
-      'normal_ex1': { name: 'Ex1', notes: ['C4', 'E4', 'G4', 'C5'], desc: '' },
-      'normal_ex2': { name: 'Ex2', notes: ['C4', 'D4', 'E4', 'G4', 'A4', 'C5'], desc: '' },
-      'hard_ex1': { name: 'Ex3', notes: [...WHITE_NOTE_IDS, 'A#4'], desc: '' },
-      'hard_ex2': { name: 'Ex4', notes: [...WHITE_NOTE_IDS, 'A#4', 'D#4'], desc: '' },
-      'hard_ex3': { name: 'Ex5', notes: [...WHITE_NOTE_IDS, 'A#4', 'D#4', 'G#4'], desc: '' },
-      'hard_ex4': { name: 'Ex6', notes: [...WHITE_NOTE_IDS, 'F#4'], desc: '' },
-      'hard_ex5': { name: 'Ex7', notes: [...WHITE_NOTE_IDS, 'F#4', 'C#4'], desc: '' },
-      'hard_ex6': { name: 'Ex8', notes: [...WHITE_NOTE_IDS, 'F#4', 'C#4', 'G#4'], desc: '' },
-      'hard_ex7': { name: 'Ex9', notes: BLACK_NOTE_IDS, desc: '' }
+      'custom': { name: 'Custom', notes: NOTES_DATA.map(n => n.id), desc: '' }
     };
 
     // Notation Definitions
@@ -1353,7 +1366,15 @@
         }
 
         // Piano Keys DOM
-        this.keys = document.querySelectorAll('.key');
+        this.keys = document.querySelectorAll('#game-view .key');
+
+        // Custom Mode Settings
+        this.customSettingsContainer = document.getElementById('custom-mode-settings');
+        this.settingKeys = document.querySelectorAll('#setting-keyboard .key');
+        this.customModeError = document.getElementById('custom-mode-error');
+        this.customAllOnBtn = document.getElementById('custom-all-on-btn');
+        this.customAllOffBtn = document.getElementById('custom-all-off-btn');
+        this.updateCustomKeyboardVisuals();
       }
 
       bindEvents() {
@@ -1366,7 +1387,56 @@
         this.modeSelect.addEventListener('change', (e) => {
           this.currentMode = e.target.value;
           this.highlightActiveModeKeys();
+          
+          if (this.currentMode === 'custom') {
+            this.customSettingsContainer.style.display = 'block';
+          } else {
+            this.customSettingsContainer.style.display = 'none';
+          }
+          this.checkCustomModeValidity();
         });
+
+        if (this.settingKeys) {
+          this.settingKeys.forEach(keyElem => {
+            const handleToggle = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const noteId = keyElem.getAttribute('data-note');
+              const customNotes = GAME_MODES['custom'].notes;
+              const index = customNotes.indexOf(noteId);
+              if (index > -1) {
+                customNotes.splice(index, 1);
+              } else {
+                customNotes.push(noteId);
+              }
+              this.updateCustomKeyboardVisuals();
+              this.checkCustomModeValidity();
+              this.highlightActiveModeKeys();
+            };
+            keyElem.addEventListener('mousedown', handleToggle);
+            keyElem.addEventListener('touchstart', handleToggle, { passive: false });
+          });
+        }
+
+        if (this.customAllOnBtn) {
+          this.customAllOnBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            GAME_MODES['custom'].notes = NOTES_DATA.map(n => n.id);
+            this.updateCustomKeyboardVisuals();
+            this.checkCustomModeValidity();
+            this.highlightActiveModeKeys();
+          });
+        }
+
+        if (this.customAllOffBtn) {
+          this.customAllOffBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            GAME_MODES['custom'].notes = [];
+            this.updateCustomKeyboardVisuals();
+            this.checkCustomModeValidity();
+            this.highlightActiveModeKeys();
+          });
+        }
 
         this.notationSelect.addEventListener('change', (e) => {
           this.currentNotation = e.target.value;
@@ -1442,8 +1512,46 @@
             return;
           }
 
+          // Custom mode all-on/all-off shortcuts
+          if (this.startView.classList.contains('active') && this.currentMode === 'custom') {
+            if (k === 'z') {
+              e.preventDefault();
+              GAME_MODES['custom'].notes = NOTES_DATA.map(n => n.id);
+              this.updateCustomKeyboardVisuals();
+              this.checkCustomModeValidity();
+              this.highlightActiveModeKeys();
+              return;
+            }
+            if (k === 'x') {
+              e.preventDefault();
+              GAME_MODES['custom'].notes = [];
+              this.updateCustomKeyboardVisuals();
+              this.checkCustomModeValidity();
+              this.highlightActiveModeKeys();
+              return;
+            }
+          }
+
           if (KEY_MAP[k]) {
-            this.handleKeyTrigger(KEY_MAP[k]);
+            const noteId = KEY_MAP[k];
+            
+            // Custom mode shortcut toggle in Start View
+            if (this.startView.classList.contains('active') && this.currentMode === 'custom') {
+              const customNotes = GAME_MODES['custom'].notes;
+              const index = customNotes.indexOf(noteId);
+              if (index > -1) {
+                customNotes.splice(index, 1);
+              } else {
+                customNotes.push(noteId);
+              }
+              this.updateCustomKeyboardVisuals();
+              this.checkCustomModeValidity();
+              this.highlightActiveModeKeys();
+              e.preventDefault();
+              return;
+            }
+
+            this.handleKeyTrigger(noteId);
           }
         });
 
@@ -1487,7 +1595,7 @@
 
       updateLabels() {
         const labelsMap = NOTATIONS[this.currentNotation].labels;
-        this.keys.forEach(keyElem => {
+        document.querySelectorAll('.key').forEach(keyElem => {
           const noteId = keyElem.getAttribute('data-note');
           const labelSpan = keyElem.querySelector('.note-name');
           if (labelSpan && labelsMap[noteId]) {
@@ -1498,7 +1606,7 @@
 
       highlightActiveModeKeys() {
         const activeNoteIds = GAME_MODES[this.currentMode].notes;
-        this.keys.forEach(keyElem => {
+        document.querySelectorAll('#game-view .key').forEach(keyElem => {
           const noteId = keyElem.getAttribute('data-note');
           if (activeNoteIds.includes(noteId)) {
             keyElem.classList.remove('out-of-mode');
@@ -1506,6 +1614,44 @@
             keyElem.classList.add('out-of-mode');
           }
         });
+      }
+
+      updateCustomKeyboardVisuals() {
+        if (!this.settingKeys) return;
+        const customNotes = GAME_MODES['custom'].notes;
+        this.settingKeys.forEach(keyElem => {
+          const noteId = keyElem.getAttribute('data-note');
+          if (customNotes.includes(noteId)) {
+            keyElem.style.opacity = '1';
+            keyElem.style.filter = 'none';
+          } else {
+            keyElem.style.opacity = '0.3';
+            keyElem.style.filter = 'grayscale(80%)';
+          }
+        });
+      }
+
+      checkCustomModeValidity() {
+        if (this.currentMode !== 'custom') {
+          this.startBtn.disabled = false;
+          this.startBtn.style.opacity = '1';
+          this.startBtn.style.cursor = 'pointer';
+          if(this.customModeError) this.customModeError.style.opacity = '0';
+          return;
+        }
+        
+        const customNotes = GAME_MODES['custom'].notes;
+        if (customNotes.length === 0) {
+          this.startBtn.disabled = true;
+          this.startBtn.style.opacity = '0.5';
+          this.startBtn.style.cursor = 'not-allowed';
+          this.customModeError.style.opacity = '1';
+        } else {
+          this.startBtn.disabled = false;
+          this.startBtn.style.opacity = '1';
+          this.startBtn.style.cursor = 'pointer';
+          this.customModeError.style.opacity = '0';
+        }
       }
 
       showView(viewName) {
