@@ -1767,6 +1767,11 @@
         const debugElem = document.getElementById('practice-debug-prob');
         if (!debugElem) return;
 
+        if (!ENABLE_DEV_MODE) {
+          debugElem.style.display = 'none';
+          return;
+        }
+
         const modeNotes = GAME_MODES[this.currentMode].notes;
         const weights = modeNotes.map(note => 1 + (this.practiceErrors[note] || 0));
         const totalWeight = weights.reduce((a, b) => a + b, 0);
@@ -1851,7 +1856,7 @@
         }
 
         // Trigger Key Active Visual
-        const keyElem = document.querySelector(`.key[data-note="${noteId}"]`);
+        const keyElem = document.querySelector(`#game-view .key[data-note="${noteId}"]`);
         if (keyElem) {
           keyElem.classList.add('active');
           setTimeout(() => keyElem.classList.remove('active'), 150);
